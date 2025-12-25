@@ -24,12 +24,13 @@ MCELOG_MAX_UNCORRECTED_RATE="${MCELOG_MAX_UNCORRECTED_RATE:-0}"
 
 # Read hardware information from /proc and /sys files.
 function nhc_hw_gather_data() {
-    local IFS LINE CORES SIBLINGS MHZ PROCESSOR PHYS_ID PORT INDEX DEV
+    local IFS LINE CORES SIBLINGS MHZ PROCESSOR PHYS_ID PORT INDEX DEV CPUINFO
     local -a FIELD PHYS_IDS IB_PORTS
 
     # Gather CPU info
     PROCESSOR=-1
     if [[ -e /proc/cpuinfo ]]; then
+        CPUINFO=$(cat /proc/cpuinfo)
         while read -a FIELD ; do
             if [[ "${FIELD[0]} ${FIELD[1]}" = "processor :" ]]; then
                 : $((PROCESSOR++))
@@ -47,7 +48,7 @@ function nhc_hw_gather_data() {
                 MHZ="${FIELD[3]}"
                 MHZ="${MHZ/%.*}"
             fi
-        done < /proc/cpuinfo
+        done <<< $CPUINFO
     fi
     if [[ $PROCESSOR -ge 0 && $HW_SOCKETS -eq 0 ]]; then
         HW_SOCKETS=$((PROCESSOR+1))
